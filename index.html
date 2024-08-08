@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мессенджер</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="main">
+        <div id="sidebar">
+            <div id="menu">
+                <div id="menu-icon">☰</div>
+                <div id="settings-menu">
+                    <button id="change-username">Сменить имя пользователя</button>
+                </div>
+            </div>
+            <input type="text" id="chat-search" placeholder="Поиск чатов...">
+            <ul id="chat-list"></ul>
+            <div id="users-online">
+                <h3>Онлайн:</h3>
+            </div>
+        </div>
+        <div id="chat-window">
+            <div id="chat-header">Выберите чат</div>
+            <div id="messages"></div>
+            <div id="message-input">
+                <input type="text" id="message-text" placeholder="Введите сообщение...">
+                <button id="send-message">Отправить</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
