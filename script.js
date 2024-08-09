@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let chatList = JSON.parse(localStorage.getItem('chats')) || {};
     let selectedChat = null;
     let usersOnline = JSON.parse(localStorage.getItem('usersOnline')) || [];
+    const socket = new WebSocket('ws://localhost:8080');
 
     // Функция для отображения чатов
     function renderChatList() {
@@ -17,21 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Функция для отображения сообщений
-    function renderMessages() {
+    function renderMessages(message) {
         const messagesElement = document.getElementById('messages');
-        messagesElement.innerHTML = '';
-        if (selectedChat && chatList[selectedChat]) {
-            chatList[selectedChat].forEach(msg => {
-                const div = document.createElement('div');
-                div.classList.add('message', msg.sender === username ? 'sent' : 'received');
-                div.textContent = msg.text;
-                div.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    showContextMenu(e, div, msg);
-                });
-                messagesElement.appendChild(div);
-            });
-        }
+        const div = document.createElement('div');
+        div.classList.add('message', message.sender === username ? 'sent' : 'received');
+        div.textContent = message.text;
+        messagesElement.appendChild(div);
+        messagesElement.scrollTop = messagesElement.scrollHeight;
     }
 
     // Функция для выбора чата
@@ -91,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newUsername) {
             username = newUsername;
             localStorage.setItem('username', username);
-            updateUsersOnline();
         }
     }
 
@@ -141,6 +133,20 @@ document.addEventListener('DOMContentLoaded', () => {
         username = prompt('Введите ваше имя пользователя:');
         localStorage.setItem('username', username);
     }
+
+    socket.onopen = () => {
+        console.log('Соединение установлено.');
+        socket.send(`${username} присоединился к чату.`);
+    };
+
+    socket.onmessage = (event) => {
+        const messageData = event.data;
+        renderMessages({ text: messageData, sender: "other" });
+    };
+
+    socket.onclose = () => {
+        console.log('Соединение закрыто.');
+    };
     updateUsersOnline();
 
     // Создание стартовых данных, если они отсутствуют
@@ -154,9 +160,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Привязка событий
-    document.getElementById('send-message').addEventListener('click', sendMessage);
+    // Привязка событий
+    document.getElementById('send-message').addEventListener('click', () => {
+        const messageText = document.getElementById('message-text').value.trim();
+        if (messageText) {
+            const message = `${username}: ${messageText}`;
+            socket.send(message);
+            renderMessages({ text: messageText, sender: username });
+            document.getElementById('message-text').value = '';
+        }
+    });
     document.getElementById('message-text').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter') {
+            const messageText = document.getElementById('message-text').value.trim();
+            if (messageText) {
+                const message = `${username}: ${messageText}`;
+                socket.send(message);
+                renderMessages({ text: messageText, sender: username });
+                document.getElementById('message-text').value = '';
+            }
+        }
     });
     document.getElementById('menu-icon').addEventListener('click', () => {
         const settingsMenu = document.getElementById('settings-menu');
